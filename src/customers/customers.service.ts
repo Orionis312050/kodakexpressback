@@ -19,7 +19,10 @@ export class CustomersService {
   }
 
   findByEmail(email: string): Promise<Customer | null> {
-    return this.customersRepository.findOneBy({ email });
+    return this.customersRepository.findOne({
+      where: { email: email },
+      select: ['id', 'email', 'firstName', 'lastName', 'phone'],
+    });
   }
 
   findOne(id: number): Promise<Customer | null> {
@@ -41,6 +44,24 @@ export class CustomersService {
     };
   }
 
+  async verify(token: string): Promise<any> {
+    try {
+      const payload = await this.jwtService.verifyAsync(token);
+      const customer = await this.findOne(payload.sub);
+
+      if (!customer) {
+        throw new UnauthorizedException('Utilisateur non trouvé');
+      }
+
+      const { password, ...result } = customer;
+      return result;
+    } catch (error) {
+      throw new UnauthorizedException(
+        'Token invalide ou expiré' + ' : ' + error,
+      );
+    }
+  }
+
   async login(loginDto: LoginDto): Promise<any> {
     const customer = await this.customersRepository.findOneBy({
       email: loginDto.email,
@@ -60,10 +81,16 @@ export class CustomersService {
     const payload = { email: customer.email, sub: customer.id };
 
     // On retourne le token + les infos utilisateur
-    const { password, ...result } = customer;
+    // const { password, ...result } = customer;
     return {
       access_token: this.jwtService.sign(payload),
-      ...result,
+      token_type: 'Bearer',
+      user: {
+        id: customer.id,
+        email: customer.email,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+      },
     };
   }
 

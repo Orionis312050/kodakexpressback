@@ -15,6 +15,7 @@ import { Customer } from '../entities/Customer';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from '../dto/LoginDto';
 import type { Request, Response } from 'express';
+import { JSX_ENVIRONMENT, JSX_SECURE } from '../constants/Constants';
 
 @ApiTags('Clients')
 @Controller('customers')
@@ -51,8 +52,21 @@ export class CustomersController {
 
   @ApiOperation({ summary: 'Authentification client' })
   @Post('login')
-  login(@Body() loginDto: LoginDto) {
-    return this.customersService.login(loginDto);
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.customersService.login(loginDto);
+
+    response.cookie('token', result.access_token, {
+      httpOnly: true,
+      secure: JSX_SECURE,
+      sameSite: JSX_ENVIRONMENT, // 'lax' est souvent plus simple pour le dev local
+      path: '/',
+      maxAge: 3600000, // 1 heure par exemple
+    });
+
+    return result;
   }
 
   @ApiOperation({ summary: 'Déconnexion client' })
@@ -60,8 +74,8 @@ export class CustomersController {
   logout(@Res({ passthrough: true }) response: Response) {
     response.cookie('token', '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Mettre 'true' si vous êtes en HTTPS
-      sameSite: 'strict',
+      secure: JSX_SECURE, // Mettre 'true' si vous êtes en HTTPS
+      sameSite: JSX_ENVIRONMENT,
       expires: new Date(0),
       path: '/',
     });

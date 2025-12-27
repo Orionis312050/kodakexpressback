@@ -34,7 +34,7 @@ export class Customer {
   @ApiProperty({
     example: '0601020304',
     description: 'Numéro de téléphone',
-    required: false,
+    required: true,
   })
   @Column()
   phone: string;
@@ -42,6 +42,30 @@ export class Customer {
   @ApiProperty({ description: 'Date de création du compte' })
   @Column({ default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
+
+  @ApiProperty({
+    example: '1 rue de la paix',
+    description: 'adresse du client',
+    required: true,
+  })
+  @Column()
+  address: string;
+
+  @ApiProperty({
+    example: '75001',
+    description: 'code postal du client',
+    required: true,
+  })
+  @Column()
+  zipCode: string;
+
+  @ApiProperty({
+    example: 'Paris',
+    description: 'ville du client',
+    required: true,
+  })
+  @Column()
+  city: string;
 
   @BeforeInsert()
   async hashPassword() {

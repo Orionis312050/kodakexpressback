@@ -21,7 +21,16 @@ export class CustomersService {
   findByEmail(email: string): Promise<Customer | null> {
     return this.customersRepository.findOne({
       where: { email: email },
-      select: ['id', 'email', 'firstName', 'lastName', 'phone'],
+      select: [
+        'id',
+        'email',
+        'firstName',
+        'lastName',
+        'phone',
+        'address',
+        'zipCode',
+        'city',
+      ],
     });
   }
 

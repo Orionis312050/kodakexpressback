@@ -29,4 +29,12 @@ export class Product {
   @ApiProperty({ example: true, description: 'Disponibilité en stock' })
   @Column({ default: true })
   inStock: boolean;
+
+  @ApiProperty({ example: true, description: 'Icone du produit' })
+  @Column({ default: true })
+  icon: string;
+
+  @ApiProperty({ example: true, description: "Nom de l'icone du produit" })
+  @Column({ default: true })
+  iconName: string;
 }

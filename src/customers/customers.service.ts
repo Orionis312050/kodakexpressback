@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { LoginDto } from '../dto/LoginDto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { RegisterDto } from '../dto/RegisterDto';
+import { VerifyTokenDto } from '../dto/VerifyTokenDto';
 
 @Injectable()
 export class CustomersService {
@@ -46,7 +48,8 @@ export class CustomersService {
     const payload = { email: savedCustomer.email, sub: savedCustomer.id };
 
     // 3. On retourne l'utilisateur (sans mot de passe) + le token
-    const { password, ...result } = savedCustomer;
+    const result: RegisterDto = savedCustomer;
+    console.log(result);
     return {
       access_token: this.jwtService.sign(payload),
       ...result,
@@ -55,7 +58,7 @@ export class CustomersService {
 
   async verify(token: string): Promise<any> {
     try {
-      const payload = await this.jwtService.verifyAsync(token);
+      const payload: VerifyTokenDto = await this.jwtService.verifyAsync(token);
       const customer = await this.findOne(payload.sub);
 
       if (!customer) {
@@ -93,7 +96,6 @@ export class CustomersService {
     // const { password, ...result } = customer;
     return {
       access_token: this.jwtService.sign(payload),
-      token_type: 'Bearer',
       user: {
         id: customer.id,
         email: customer.email,

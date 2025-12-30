@@ -5,8 +5,13 @@ import { Repository } from 'typeorm';
 import { LoginDto } from '../dto/LoginDto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { RegisterDto } from '../dto/RegisterDto';
 import { VerifyTokenDto } from '../dto/VerifyTokenDto';
+import {
+  CustomerWithoutPassword,
+  LoginResponse,
+  RegisterResponse,
+  UserRegister,
+} from '../interfaces/Interfaces';
 
 @Injectable()
 export class CustomersService {
@@ -40,41 +45,45 @@ export class CustomersService {
     return this.customersRepository.findOneBy({ id });
   }
 
-  async create(customer: Customer): Promise<any> {
+  async create(customer: Customer): Promise<RegisterResponse> {
     const newCustomer = this.customersRepository.create(customer);
     const savedCustomer = await this.customersRepository.save(newCustomer);
 
-    // 2. Génération du payload JWT
     const payload = { email: savedCustomer.email, sub: savedCustomer.id };
 
-    // 3. On retourne l'utilisateur (sans mot de passe) + le token
-    const result: RegisterDto = savedCustomer;
-    console.log(result);
+    const result: UserRegister = savedCustomer;
     return {
       access_token: this.jwtService.sign(payload),
       ...result,
     };
   }
 
-  async verify(token: string): Promise<any> {
-    try {
-      const payload: VerifyTokenDto = await this.jwtService.verifyAsync(token);
-      const customer = await this.findOne(payload.sub);
+  async verify(token: string): Promise<CustomerWithoutPassword | null> {
+    const payload: VerifyTokenDto = await this.jwtService.verifyAsync(token);
+    const customer = await this.findOne(payload.sub);
 
-      if (!customer) {
-        throw new UnauthorizedException('Utilisateur non trouvé');
-      }
-
-      const { password, ...result } = customer;
-      return result;
-    } catch (error) {
-      throw new UnauthorizedException(
-        'Token invalide ou expiré' + ' : ' + error,
-      );
+    if (!customer) {
+      return null;
     }
+
+    const result: CustomerWithoutPassword = {
+      id: customer.id,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+      email: customer.email,
+      phone: customer.phone,
+      createdAt: customer.createdAt,
+      address: customer.address,
+      zipCode: customer.zipCode,
+      city: customer.city,
+    };
+
+    console.log(result);
+
+    return result;
   }
 
-  async login(loginDto: LoginDto): Promise<any> {
+  async login(loginDto: LoginDto): Promise<LoginResponse> {
     const customer = await this.customersRepository.findOneBy({
       email: loginDto.email,
     });
@@ -89,11 +98,8 @@ export class CustomersService {
       throw new UnauthorizedException('Email ou mot de passe incorrect');
     }
 
-    // Génération du token
     const payload = { email: customer.email, sub: customer.id };
 
-    // On retourne le token + les infos utilisateur
-    // const { password, ...result } = customer;
     return {
       access_token: this.jwtService.sign(payload),
       user: {
@@ -105,8 +111,9 @@ export class CustomersService {
     };
   }
 
-  async remove(id: number): Promise<void> {
-    await this.customersRepository.delete(id);
+  async remove(id: number): Promise<boolean> {
+    const result = await this.customersRepository.delete(id);
+    return result.affected !== 0;
   }
 
   // Seed pour les clients

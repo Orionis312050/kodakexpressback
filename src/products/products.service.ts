@@ -22,8 +22,9 @@ export class ProductsService {
     return this.productsRepository.save(product);
   }
 
-  async remove(id: number): Promise<void> {
-    await this.productsRepository.delete(id);
+  async remove(id: number): Promise<boolean> {
+    const result = await this.productsRepository.delete(id);
+    return result.affected !== 0;
   }
 
   async seed() {
@@ -31,10 +32,30 @@ export class ProductsService {
     if (count === 0) {
       console.log('Seeding initial products...');
       await this.productsRepository.save([
-        { name: 'Tirage Standard 10x15', description: 'Papier photo premium brillant', price: 0.25, category: 'Tirage' },
-        { name: 'Agrandissement A4', description: 'Format 21x29.7cm', price: 4.50, category: 'Tirage' },
-        { name: 'Livre Photo Paysage', description: 'Couverture rigide, 24 pages', price: 29.90, category: 'Album' },
-        { name: 'Mug Personnalisé', description: 'Céramique blanche', price: 12.00, category: 'Cadeau' },
+        {
+          name: 'Tirage Standard 10x15',
+          description: 'Papier photo premium brillant',
+          price: 0.25,
+          category: 'Tirage',
+        },
+        {
+          name: 'Agrandissement A4',
+          description: 'Format 21x29.7cm',
+          price: 4.5,
+          category: 'Tirage',
+        },
+        {
+          name: 'Livre Photo Paysage',
+          description: 'Couverture rigide, 24 pages',
+          price: 29.9,
+          category: 'Album',
+        },
+        {
+          name: 'Mug Personnalisé',
+          description: 'Céramique blanche',
+          price: 12.0,
+          category: 'Cadeau',
+        },
       ]);
     }
   }

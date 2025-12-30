@@ -8,7 +8,6 @@ import {
   Query,
   Req,
   Res,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CustomersService } from './customers.service';
 import { Customer } from '../entities/Customer';
@@ -16,6 +15,10 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from '../dto/LoginDto';
 import type { Request, Response } from 'express';
 import { JSX_ENVIRONMENT, JSX_SECURE } from '../constants/Constants';
+import {
+  CustomerWithoutPassword,
+  LoginResponse,
+} from '../interfaces/Interfaces';
 
 @ApiTags('Clients')
 @Controller('customers')
@@ -42,10 +45,10 @@ export class CustomersController {
 
   @ApiOperation({ summary: 'Vérification du token client' })
   @Get('verify')
-  async verify(@Req() req: Request): Promise<any> {
-    const token = req.cookies['token'];
+  async verify(@Req() req: Request): Promise<CustomerWithoutPassword | null> {
+    const token: string = req.cookies['token'] as string;
     if (!token) {
-      throw new UnauthorizedException('Aucun token de session trouvé');
+      return null;
     }
     return await this.customersService.verify(token);
   }
@@ -56,7 +59,7 @@ export class CustomersController {
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const result = await this.customersService.login(loginDto);
+    const result: LoginResponse = await this.customersService.login(loginDto);
 
     response.cookie('token', result.access_token, {
       httpOnly: true,
@@ -66,7 +69,7 @@ export class CustomersController {
       maxAge: 3600000, // 1 heure par exemple
     });
 
-    return result;
+    return result.user;
   }
 
   @ApiOperation({ summary: 'Déconnexion client' })

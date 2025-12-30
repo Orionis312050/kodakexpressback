@@ -1,6 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  BeforeInsert,
+  OneToMany,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import * as bcrypt from 'bcrypt';
+import { Cart } from './Cart';
 
 @Entity()
 export class Customer {
@@ -22,6 +29,9 @@ export class Customer {
   })
   @Column({ unique: true }) // Email unique
   email: string;
+
+  @OneToMany(() => Cart, (cart) => cart.customer)
+  carts: Cart[];
 
   @ApiProperty({
     example: 'monmotdepasse',

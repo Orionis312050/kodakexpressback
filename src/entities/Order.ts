@@ -49,10 +49,15 @@ export class Order {
   @Column({ name: 'billing_address', type: 'text' })
   billingAddress: string;
 
-  @Column({ name: 'payment_method', length: 50, nullable: true })
+  @Column({
+    name: 'payment_method',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
   paymentMethod: string | null;
 
-  @Column({ name: 'transaction_id', nullable: true })
+  @Column({ name: 'transaction_id', type: 'varchar', nullable: true })
   transactionId: string | null;
 
   @CreateDateColumn({ name: 'created_at' })

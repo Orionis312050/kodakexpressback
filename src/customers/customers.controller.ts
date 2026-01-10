@@ -8,6 +8,7 @@ import {
   Query,
   Req,
   Res,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CustomersService } from './customers.service';
 import { Customer } from '../entities/Customer';
@@ -45,12 +46,19 @@ export class CustomersController {
 
   @ApiOperation({ summary: 'Vérification du token client' })
   @Get('verify')
-  async verify(@Req() req: Request): Promise<CustomerWithoutPassword | null> {
+  async verify(@Req() req: Request): Promise<CustomerWithoutPassword> {
     const token: string = req.cookies['token'] as string;
     if (!token) {
-      return null;
+      throw new UnauthorizedException('Token manquant');
     }
-    return await this.customersService.verify(token);
+
+    const user = await this.customersService.verify(token);
+
+    if (!user) {
+      throw new UnauthorizedException('Token invalide');
+    }
+
+    return user;
   }
 
   @ApiOperation({ summary: 'Authentification client' })

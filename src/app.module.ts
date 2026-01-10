@@ -7,6 +7,9 @@ import { Customer } from './entities/Customer';
 import { Product } from './entities/Product';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { S3Module } from './s3/s3.module';
+import { CartItem } from './entities/CartItem';
+import { Cart } from './entities/Cart';
+import { Order } from './entities/Order';
 
 @Module({
   imports: [
@@ -17,8 +20,8 @@ import { S3Module } from './s3/s3.module';
       username: 'root',
       password: 'root',
       database: 'kodak_express_db',
-      entities: [Product, Customer],
-      synchronize: true,
+      entities: [Product, Customer, CartItem, Cart, Order],
+      synchronize: false,
       autoLoadEntities: true,
     }),
     CustomersModule,
